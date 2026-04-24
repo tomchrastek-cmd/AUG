@@ -1,0 +1,10 @@
+{
+  "name": "Zlatá trefa - audioguide",
+  "short_name": "Zlatá trefa",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff4ec",
+  "theme_color": "#f05a43",
+  "lang": "cs",
+  "icons": []
+}
