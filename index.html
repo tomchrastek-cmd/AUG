@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zlatá trefa – audioguide</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --bg-2:#eef3fb;
+  --card:rgba(255,255,255,.88);
+  --card-strong:#ffffff;
+  --line:rgba(25,40,78,.10);
+  --ink:#18223b;
+  --muted:#66708a;
+  --blue:#1b2d63;
+  --blue-soft:#3453aa;
+  --orange:#eb624a;
+  --shadow:0 18px 55px rgba(31,45,86,.10);
+  --radius:28px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, #ffffff 0, #f8fafc 28%, var(--bg) 100%);
+}
+img{max-width:100%}
+button,input,audio{font:inherit}
+.hidden{display:none !important}
+.wrap{max-width:1240px;margin:0 auto}
+
+/* Intro */
+.intro{
+  min-height:100svh;
+  padding:24px;
+  display:flex;
+  align-items:center;
+}
+.intro-shell{
+  width:100%;
+  max-width:1280px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:24px;
+  align-items:stretch;
+}
+.hero-visual{
+  min-height:70svh;
+  border-radius:36px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:var(--shadow);
+  background:#dfe5ee url('assets/intro-josef-panacek.jpg') center center / cover no-repeat;
+}
+.hero-visual::before{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(90deg, rgba(14,23,48,.28) 0%, rgba(14,23,48,.06) 42%, rgba(14,23,48,.02) 100%);
+}
+.brand-chip{
+  position:absolute;
+  top:18px;left:18px;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.72);
+  color:var(--blue);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.04em;
+  backdrop-filter:blur(10px);
+}
+.hero-panel{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:34px 30px;
+  border-radius:36px;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(10px);
+}
+.kicker{
+  margin:0 0 14px;
+  color:var(--blue-soft);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.hero-panel h1{
+  margin:0;
+  font-size:clamp(42px,6vw,84px);
+  line-height:.92;
+  letter-spacing:-.06em;
+  color:var(--blue);
+}
+.subtitle{
+  margin:14px 0 0;
+  font-size:clamp(18px,2vw,24px);
+  line-height:1.35;
+  color:#34405e;
+}
+.hero-copy{
+  margin:22px 0 0;
+  font-size:17px;
+  line-height:1.65;
+  color:#4f5871;
+}
+.start-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+.start-btn,
+.ctrl,
+.stop-card{
+  -webkit-tap-highlight-color: transparent;
+}
+.start-btn{
+  border:0;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--orange),#ff7a63);
+  color:white;
+  padding:16px 22px;
+  min-height:54px;
+  font-weight:900;
+  letter-spacing:.01em;
+  cursor:pointer;
+  box-shadow:0 14px 28px rgba(235,98,74,.24);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.start-btn:hover{transform:translateY(-1px);box-shadow:0 18px 34px rgba(235,98,74,.28)}
+.start-note{
+  margin:0;
+  color:var(--muted);
+  font-size:15px;
+}
+
+/* App */
+.app{
+  padding:24px 16px 34px;
+}
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+  padding:18px 22px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:24px;
+  backdrop-filter:blur(10px);
+  box-shadow:var(--shadow);
+}
+.topbar h2{
+  margin:0;
+  font-size:clamp(24px,3vw,38px);
+  line-height:1;
+  letter-spacing:-.04em;
+  color:var(--blue);
+}
+.topbar p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:15px;
+}
+.ghost-btn{
+  appearance:none;
+  border:1px solid rgba(27,45,99,.12);
+  background:#fff;
+  color:var(--blue);
+  border-radius:16px;
+  padding:12px 16px;
+  font-weight:800;
+  cursor:pointer;
+}
+.layout{
+  display:grid;
+  grid-template-columns:350px minmax(0,1fr);
+  gap:24px;
+}
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(12px);
+}
+.sidebar{
+  padding:16px;
+  align-self:start;
+  position:sticky;
+  top:16px;
+}
+.sidebar-head{
+  padding:8px 8px 14px;
+}
+.sidebar-head h3{
+  margin:0;
+  color:var(--blue);
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+.sidebar-head p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.stop-grid{
+  display:grid;
+  gap:10px;
+}
+.stop-card{
+  width:100%;
+  border:1px solid rgba(27,45,99,.08);
+  background:rgba(255,255,255,.84);
+  border-radius:22px;
+  padding:13px;
+  display:grid;
+  grid-template-columns:56px 1fr;
+  gap:13px;
+  text-align:left;
+  color:var(--ink);
+  cursor:pointer;
+  transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.stop-card:hover{transform:translateY(-1px);box-shadow:0 10px 18px rgba(31,45,86,.08)}
+.stop-card.active{
+  border-color:rgba(235,98,74,.36);
+  background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,242,239,.98));
+  box-shadow:0 12px 24px rgba(31,45,86,.10);
+}
+.num{
+  width:56px;height:56px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,var(--blue),#2a3f87);
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+.stop-card strong{
+  display:block;
+  font-size:17px;
+  color:var(--blue);
+  letter-spacing:-.02em;
+}
+.stop-card small{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.35;
+}
+.content{
+  padding:22px;
+}
+.content-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.content-head h3{
+  margin:0;
+  font-size:clamp(32px,5vw,58px);
+  line-height:.93;
+  letter-spacing:-.055em;
+  color:var(--blue);
+  text-transform:uppercase;
+}
+.content-head p{
+  margin:10px 0 0;
+  color:#54607c;
+  font-size:17px;
+  line-height:1.5;
+  max-width:760px;
+}
+.badge{
+  flex:none;
+  min-width:56px;
+  height:56px;
+  border-radius:20px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,var(--orange),#ff8b74);
+  color:white;
+  font-weight:900;
+  font-size:22px;
+  box-shadow:0 12px 24px rgba(235,98,74,.22);
+}
+.audio-box{
+  background:var(--card-strong);
+  border:1px solid rgba(27,45,99,.08);
+  border-radius:24px;
+  padding:14px;
+}
+audio{
+  width:100%;
+  height:48px;
+}
+.progress{
+  margin:14px 0 12px;
+  display:grid;
+  gap:8px;
+}
+.progress-label{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:750;
+}
+.progress-track{
+  height:9px;
+  border-radius:999px;
+  overflow:hidden;
+  background:#e7edf7;
+}
+.progress-bar{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--orange),#ff987f);
+  transition:width .25s ease;
+}
+.controls{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.ctrl{
+  appearance:none;
+  border:0;
+  border-radius:16px;
+  background:var(--blue);
+  color:white;
+  padding:14px 16px;
+  font-weight:850;
+  cursor:pointer;
+  min-height:52px;
+  transition:transform .15s ease, opacity .15s ease;
+}
+.ctrl.secondary{background:var(--orange)}
+.ctrl.ghost{background:#e9eef9;color:var(--blue)}
+.ctrl.soft{background:#f4f7fc;color:var(--blue);border:1px solid rgba(27,45,99,.10)}
+.ctrl:hover{transform:translateY(-1px)}
+.ctrl:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.notice{
+  display:none;
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:16px;
+  background:#fff4da;
+  color:#785221;
+  border:1px solid #efd399;
+  font-size:14px;
+  line-height:1.45;
+}
+.done{
+  display:none;
+  margin-top:12px;
+  padding:14px;
+  border-radius:18px;
+  background:#eef7f1;
+  color:#234d33;
+  border:1px solid #cce7d4;
+  font-size:15px;
+  line-height:1.5;
+  font-weight:700;
+}
+.story{
+  margin-top:16px;
+  padding:20px;
+  background:var(--card-strong);
+  border:1px solid rgba(27,45,99,.08);
+  border-radius:24px;
+}
+.story p{
+  margin:0 0 14px;
+  color:#303b57;
+  font-size:17px;
+  line-height:1.72;
+}
+.story p:last-child{margin-bottom:0}
+.panel-img{
+  display:block;
+  width:100%;
+  margin-top:16px;
+  border-radius:24px;
+  border:1px solid rgba(27,45,99,.10);
+  background:#e8edf5;
+}
+@media (max-width: 980px){
+  .intro-shell,
+  .layout{grid-template-columns:1fr}
+  .hero-visual{min-height:42svh}
+  .sidebar{position:static}
+}
+@media (max-width: 720px){
+  .intro{padding:14px}
+  .hero-panel{padding:24px 20px}
+  .topbar{padding:16px}
+  .content{padding:16px}
+  .content-head{flex-direction:column}
+  .badge{min-width:50px;height:50px;border-radius:18px}
+  .stop-grid{grid-template-columns:1fr}
+}
+@media (max-width: 560px){
+  .hero-visual{min-height:34svh}
+  .hero-panel h1{font-size:44px}
+  .stop-card{grid-template-columns:52px 1fr;padding:12px}
+  .num{width:52px;height:52px}
+  .content-head h3{font-size:36px}
+  .story{padding:16px}
+  .story p{font-size:16px}
+  .controls{grid-template-columns:1fr}
+  .ctrl{width:100%}
+}
+</style>
+</head>
+<body>
+<section class="intro" id="introScreen" aria-label="Úvodní obrazovka audioprůvodce">
+  <div class="intro-shell">
+    <div class="hero-visual" role="img" aria-label="Josef Panáček se střeleckou brokovnicí na archivní fotografii.">
+      <div class="brand-chip">Slovácké muzeum · audioguide</div>
+    </div>
+    <div class="hero-panel">
+      <p class="kicker">Výstava</p>
+      <h1>Zlatá trefa</h1>
+      <p class="subtitle">Příběh olympijského vítěze Josefa Panáčka</p>
+      <p class="hero-copy">Vstupte do příběhu olympijského vítěze ve skeetu. Průvodce je rozdělený podle čísel panelů ve výstavě; vyberte si zastavení, nasaďte sluchátka a pokračujte vlastním tempem.</p>
+      <div class="start-row">
+        <button class="start-btn" id="startGuideBtn" type="button">Spustit audioguide</button>
+        <p class="start-note">Audio se po spuštění zastavení přehraje automaticky.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="app hidden" id="appScreen">
+  <div class="wrap">
+    <div class="topbar panel">
+      <div>
+        <h2>Zlatá trefa</h2>
+        <p>Vyberte číslo panelu. Po otevření zastavení se spustí odpovídající audio.</p>
+      </div>
+      <button class="ghost-btn" id="backToIntroBtn" type="button">Úvodní stránka</button>
+    </div>
+
+    <div class="layout">
+      <aside class="panel sidebar" aria-label="Seznam zastavení">
+        <div class="sidebar-head">
+          <h3>Zastavení</h3>
+          <p>Číslování odpovídá panelům ve výstavě.</p>
+        </div>
+        <div class="stop-grid" id="stopList"></div>
+      </aside>
+
+      <section class="panel content" id="contentPanel">
+        <div class="content-head">
+          <div>
+            <h3 id="title"></h3>
+            <p id="desc"></p>
+          </div>
+          <div class="badge" id="badge"></div>
+        </div>
+
+        <div class="progress" aria-label="Průběh prohlídky">
+          <div class="progress-label">
+            <span id="progressText"></span>
+            <span id="progressPercent"></span>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+
+        <div class="audio-box">
+          <audio id="player" controls preload="metadata"></audio>
+          <div class="controls">
+            <button class="ctrl soft" id="prevBtn" type="button">Předchozí</button>
+            <button class="ctrl secondary" id="playBtn" type="button">Přehrát znovu</button>
+            <button class="ctrl" id="nextBtn" type="button">Další zastavení</button>
+          </div>
+          <div class="notice" id="notice">Zvuk se nespustil automaticky. Pokračujte tlačítkem „Přehrát znovu“.</div>
+          <div class="done" id="doneMessage">Prohlídka je u konce. Děkujeme za poslech.</div>
+        </div>
+
+        <article class="story" id="textPanel"></article>
+        <img class="panel-img" id="panelImg" alt="">
+      </section>
+    </div>
+  </div>
+</section>
+
+<script>
+const stops = [
+  {
+    number:1,
+    title:'Josef Panáček',
+    desc:'Životní příběh olympijského vítěze ze Starého Města.',
+    audio:'assets/audio/01-josef-panacek.mp3',
+    panel:'assets/panels/panel-01.jpg',
+    short:'Životní příběh olympijského vítěze ze Starého Města.',
+    text:[
+      'Josef Panáček se narodil ve Starém Městě, v části zvané Prčov. Jeho dětství poznamenala válka i tragédie ve staroměstském cukrovaru, kde při bombardování v dubnu 1945 zahynula jeho sestra Zdenka.',
+      'Po vyučení a vojenské službě pracoval v Mařaticích v národním podniku Mikrotechna. Právě v této době se seznámil se svou budoucí manželkou Zdeňkou a začal trénovat na střelnici nedaleko Salaše. Od pistole brzy přešel k brokovnici a k disciplíně skeet.',
+      'Jako reprezentant Československa získal osm medailí z mezinárodních soutěží. Nejcennější z nich je zlatá medaile z olympijských her v Montrealu v roce 1976. Po ukončení kariéry působil jako trenér a později žil se svou ženou na Salaši.'
+    ]
+  },
+  {
+    number:2,
+    title:'Atlet',
+    desc:'Začátky ve sportu, koulařská přezdívka Skobla a cesta ke střelbě.',
+    audio:'assets/audio/02-atlet.mp3',
+    panel:'assets/panels/panel-02.jpg',
+    short:'Koulařská přezdívka Skobla a první sportovní úspěchy.',
+    text:[
+      'Sportovní dráha Josefa Panáčka nezačala na střelnici, ale v atletice. Na učilišti v Hradci Králové se náhodou zapojil do okresního atletického přeboru a stal se koulařem.',
+      'Dostal přezdívku Skobla podle slavného československého koulaře a v roce 1956 se stal mistrem republiky staršího dorostu výkonem patnáct celých čtyřicet pět metru.',
+      'Atletice se věnoval také během vojenské služby a později ve Slovácké Slavii Uherské Hradiště. Teprve v šedesátých letech se jeho hlavní zájem postupně přesunul ke sportovní střelbě.'
+    ]
+  },
+  {
+    number:3,
+    title:'Myslivec',
+    desc:'Myslivost jako vztah k přírodě i přirozený základ střelecké kariéry.',
+    audio:'assets/audio/03-myslivec.mp3',
+    panel:'assets/panels/panel-03.jpg',
+    short:'Myslivost, první zbraň a střelnice na Salaši.',
+    text:[
+      'Josef Panáček o sobě říkal, že je v první řadě myslivec a teprve potom střelec. Myslivecký kurz absolvoval po vyučení v roce 1955 a o rok později získal lovecký lístek.',
+      'Jeho první zbraní byla kozlice ráže šestnáct značky Holek. Myslivost a sportovní střelba se u něj přirozeně propojily, protože právě soutěže Českého mysliveckého svazu stály na počátku jeho sportovní kariéry.',
+      'Skeet mu byl blízký i proto, že připomínal lovecký postoj při honu. K myslivosti se naplno vrátil v důchodu na Salaši, kde se stal správcem tamní střelnice. Od roku 2023 se zde koná Memoriál olympijského vítěze Josefa Panáčka.'
+    ]
+  },
+  {
+    number:4,
+    title:'Střelec',
+    desc:'Cesta od pistole ke skeetu, každodenní trénink a vrcholová forma.',
+    audio:'assets/audio/04-strelec.mp3',
+    panel:'assets/panels/panel-04.jpg',
+    short:'Od pistole ke skeetu a k olympijskému zlatu.',
+    text:[
+      'Přestože je Josef Panáček spojen především se skeetem, začínal jako pistolář. V letech 1958 až 1965 se účastnil okresních závodů, ale skutečný zlom přišel až s brokovnicí.',
+      'V roce 1971 nastřílel československý rekord sto devadesát osm terčů ze dvou set a vyrovnal světový rekord. O rok později se stal mistrem republiky a v roce 1973 získal první velkou mezinárodní medaili, týmový bronz na mistrovství Evropy v Turíně.',
+      'Od roku 1975 působil ve středisku vrcholového sportu Rudá hvězda Brno pod vedením trenéra Vlastimíra Málka. Trénink stál na opakovaném nahazování zbraně, fyzické kondici a suchém nácviku. Panáček sám zdůrazňoval, že za úspěch nevděčí talentu, ale dřině.'
+    ]
+  },
+  {
+    number:5,
+    title:'Mistrovství Evropy',
+    desc:'Evropské medaile, rozstřely, týmové úspěchy a titul ze Zaragozy.',
+    audio:'assets/audio/05-mistrovstvi-evropy.mp3',
+    panel:'assets/panels/panel-05.jpg',
+    short:'Evropské medaile a titul ze Zaragozy v roce 1980.',
+    text:[
+      'Po první evropské medaili v Turíně v roce 1973 přišel další výrazný úspěch v roce 1977 v britském Dorsetu. Josef Panáček zde získal stříbro mezi jednotlivci a další stříbro s československým družstvem.',
+      'V následujících letech přidal týmové medaile ze Suhlu a Montecatini. Československý skeet tehdy patřil ke světové špičce a o výsledcích často rozhodovaly jediný terč, poslední položka nebo rozstřel.',
+      'Největší evropský triumf přišel v Zaragoze v roce 1980. Panáček po základní části vyrovnal nástřel Francouze Bruna Rossettiho a o zlatu rozhodl až druhý rozstřel. Poslední mistrovství Evropy absolvoval v Moskvě v roce 1981, kde skončil šestý a s družstvem získal bronz.'
+    ]
+  },
+  {
+    number:6,
+    title:'Legenda',
+    desc:'Sláva po Montrealu, pocty, trenérská etapa a život v ústraní.',
+    audio:'assets/audio/06-legenda.mp3',
+    panel:'assets/panels/panel-06.jpg',
+    short:'Sláva, ocenění a skromnost olympijského vítěze.',
+    text:[
+      'Zlatá medaile z Montrealu vystřelila Josefa Panáčka na sportovní Olymp. Svoji slávu však přijímal bez okázalosti. Po návratu z olympiády odjel s rodinou domů a cestou se zastavil na oblíbené srnčí na smetaně.',
+      'Následovala oficiální přijetí, vyznamenání, autogramiády, besedy i účast na veřejných akcích. V roce 1978 vznikl krátký dokument Panáček a Panenka, v němž vystupoval společně s fotbalistou Antonínem Panenkou.',
+      'Po ukončení sportovní kariéry se stal trenérem a vedl československé střelce i na olympijských hrách v Barceloně. Přesto zůstal člověkem, který slávu nevyhledával. S manželkou Zdeňkou se přestěhoval na Salaš, kde žili klidným životem u střelnice.'
+    ]
+  },
+  {
+    number:7,
+    title:'Zdeňka',
+    desc:'Manželství, vzájemná opora a osobní rovina Panáčkova příběhu.',
+    audio:'assets/audio/07-zdenka.mp3',
+    panel:'assets/panels/panel-07.jpg',
+    short:'Životní opora Josefa Panáčka.',
+    text:[
+      '„Žena je prostě skvělá, bez ní bych nebyl nic,“ řekl Josef Panáček o své manželce Zdeňce. Seznámili se v národním podniku Mikrotechna v Mařaticích, kde oba pracovali na dílně.',
+      'Zdeňka pocházela ze Salaše a s Josefem ji spojovala láska k přírodě. Později se stala myslivkyní, začala střílet a účastnila se soutěží na okresní úrovni. Vzali se v roce 1962.',
+      'Byla mu oporou při závodech i v běžném životě. V dopisech z olympijské vesnice ji oslovoval „Zdenulko“, ona mu psala „Papulko“ a dodávala mu odvahu. Jejich manželství trvalo až do Zdeňčiny smrti v roce 2018.'
+    ]
+  },
+  {
+    number:8,
+    title:'Co je skeet?',
+    desc:'Pravidla disciplíny, terče, stanoviště, zbraně a výbava střelce.',
+    audio:'assets/audio/08-co-je-skeet.mp3',
+    panel:'assets/panels/panel-08.jpg',
+    short:'Princip střelby na asfaltové holuby.',
+    text:[
+      'Skeet je broková střelecká disciplína, která vznikla ve Spojených státech ve dvacátých letech dvacátého století. Olympijskou disciplínou se stal v roce 1968.',
+      'Střelec zasahuje letící terče o průměru jedenáct centimetrů, lidově nazývané asfaltoví holubi. Terče jsou vrhány ze dvou věží, vysoké a nízké, a střelec postupně zaujímá osm stanovišť.',
+      'Na pokyn „Hop“ je vržen terč a teprve poté smí střelec zacílit a vystřelit. Střílí se brokovnicí typu kozlice. K výbavě patří také střelecké brýle, sluchátka, rukavice a vesta, která pomáhá se správným usazením zbraně.'
+    ]
+  },
+  {
+    number:9,
+    title:'Olympijský vítěz',
+    desc:'Montreal 1976, závod ve skeetu a zlatý rozstřel s Ericem Swinkelsem.',
+    audio:'assets/audio/09-olympijsky-vitez.mp3',
+    panel:'assets/panels/panel-09.jpg',
+    short:'Zlatá střela z Montrealu 1976.',
+    text:[
+      'V roce 1972 měli Josef Panáček a Milan Macháček sbaleno na olympijské hry v Mnichově, ale nakonec neodjeli. O čtyři roky později už byl Panáček v nominaci na hry v Montrealu společně s Pavlem Puldou.',
+      'Do soutěže vstupoval bez postavení hlavního favorita. V dopise manželce z olympijské vesnice psal o nejistotě a obavách ze závodu. Samotná soutěž však ukázala něco jiného.',
+      'Po osmi položkách nastřílel sto devadesát osm terčů ze dvou set a vyrovnal olympijský rekord. O zlatu rozhodoval rozstřel s Nizozemcem Ericem Swinkelsem. V rozhodující sérii Swinkels minul, zatímco Panáček zůstal neomylný. Touto zlatou střelou se stal olympijským vítězem.'
+    ]
+  },
+  {
+    number:10,
+    title:'Olympijské hry v Montrealu 1976',
+    desc:'Širší kontext olympijských her, československá výprava, logo a maskot.',
+    audio:'assets/audio/10-montreal-1976.mp3',
+    panel:'assets/panels/panel-10.jpg',
+    short:'Montreal, československé medaile a symboly her.',
+    text:[
+      'Letní olympijské hry v Montrealu se konaly od sedmnáctého července do prvního srpna 1976. Zúčastnilo se jich devadesát dva zemí, méně než v Mnichově, protože většina afrických států hry bojkotovala.',
+      'Československo reprezentovalo sto šedesát sedm sportovců a výprava získala celkem osm medailí. Zlaté medaile vybojovali cyklista Anton Tkáč a sportovní střelec Josef Panáček.',
+      'K výrazným momentům her patřila gymnastka Nadia Comăneci s první absolutní známkou deset celých nula nula, bezpečnostní opatření po Mnichovu nebo skutečnost, že pořadatelská Kanada nezískala žádnou zlatou medaili. Logo her pracovalo s motivem olympijských kruhů, stupňů vítězů a písmene M. Maskotem se stal bobr Amik.'
+    ]
+  }
+];
+
+const introScreen = document.getElementById('introScreen');
+const appScreen = document.getElementById('appScreen');
+const startGuideBtn = document.getElementById('startGuideBtn');
+const backToIntroBtn = document.getElementById('backToIntroBtn');
+const stopList = document.getElementById('stopList');
+const title = document.getElementById('title');
+const desc = document.getElementById('desc');
+const badge = document.getElementById('badge');
+const player = document.getElementById('player');
+const panelImg = document.getElementById('panelImg');
+const textPanel = document.getElementById('textPanel');
+const progressText = document.getElementById('progressText');
+const progressPercent = document.getElementById('progressPercent');
+const progressBar = document.getElementById('progressBar');
+const prevBtn = document.getElementById('prevBtn');
+const playBtn = document.getElementById('playBtn');
+const nextBtn = document.getElementById('nextBtn');
+const notice = document.getElementById('notice');
+const doneMessage = document.getElementById('doneMessage');
+const contentPanel = document.getElementById('contentPanel');
+let current = 0;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function hideNotice(){ notice.style.display = 'none'; }
+function showNotice(){ notice.style.display = 'block'; }
+function hideDone(){ doneMessage.style.display = 'none'; }
+function showDone(){ doneMessage.style.display = 'block'; }
+function showApp(){
+  introScreen.classList.add('hidden');
+  appScreen.classList.remove('hidden');
+}
+function showIntro(){
+  player.pause();
+  appScreen.classList.add('hidden');
+  introScreen.classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function renderList(){
+  stopList.innerHTML = stops.map((s,i)=> `
+    <button class="stop-card" data-index="${i}" type="button" aria-label="Zastavení ${pad(s.number)}: ${s.title}">
+      <span class="num">${pad(s.number)}</span>
+      <span>
+        <strong>${s.title}</strong>
+        <small>${s.short}</small>
+      </span>
+    </button>
+  `).join('');
+
+  document.querySelectorAll('.stop-card').forEach((card,i)=>{
+    card.addEventListener('click', ()=> selectStop(i, true, true));
+  });
+}
+function updateNavigation(){
+  const percent = Math.round(((current + 1) / stops.length) * 100);
+  progressText.textContent = `Zastavení ${pad(current + 1)} z ${pad(stops.length)}`;
+  progressPercent.textContent = `${percent} %`;
+  progressBar.style.width = `${percent}%`;
+
+  prevBtn.disabled = current === 0;
+
+  if(current < stops.length - 1){
+    nextBtn.disabled = false;
+    nextBtn.textContent = 'Další zastavení';
+  }else{
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Konec prohlídky';
+  }
+}
+function selectStop(index, autoplay=false, scroll=false){
+  current = index;
+  const s = stops[index];
+
+  document.querySelectorAll('.stop-card').forEach((card,i)=>{
+    card.classList.toggle('active', i === index);
+  });
+
+  title.textContent = s.title;
+  desc.textContent = s.desc;
+  badge.textContent = pad(s.number);
+  textPanel.innerHTML = s.text.map(p => `<p>${p}</p>`).join('');
+
+  player.pause();
+  player.src = s.audio;
+  player.load();
+
+  panelImg.src = s.panel;
+  panelImg.alt = `Panel ${pad(s.number)} – ${s.title}`;
+
+  updateNavigation();
+  hideNotice();
+  hideDone();
+
+  if(scroll && window.matchMedia('(max-width: 980px)').matches){
+    contentPanel.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  if(autoplay){ playCurrent(); }
+}
+async function playCurrent(){
+  hideNotice();
+  try{
+    await player.play();
+  }catch(err){
+    showNotice();
+  }
+}
+
+startGuideBtn.addEventListener('click', ()=>{
+  showApp();
+  selectStop(0, true, false);
+  appScreen.scrollIntoView({behavior:'smooth', block:'start'});
+});
+backToIntroBtn.addEventListener('click', showIntro);
+prevBtn.addEventListener('click', ()=>{
+  if(current > 0){
+    selectStop(current - 1, true, true);
+  }
+});
+playBtn.addEventListener('click', playCurrent);
+nextBtn.addEventListener('click', ()=>{
+  if(current < stops.length - 1){
+    selectStop(current + 1, true, true);
+  }
+});
+player.addEventListener('error', showNotice);
+player.addEventListener('ended', ()=>{
+  if(current < stops.length - 1){
+    nextBtn.focus();
+  }else{
+    showDone();
+  }
+});
+
+renderList();
+selectStop(0, false, false);
+</script>
+</body>
+</html>
